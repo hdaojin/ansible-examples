@@ -1,0 +1,75 @@
+---
+- name: System Initialization for debian
+  hosts: all
+  become: true
+  # vars_files: 
+  tasks:
+    - name: Upgrade System
+      ansible.builtin.apt:
+        upgrade: full
+        update_cache: true
+
+    - name: Install commonly used software
+      ansible.builtin.apt:
+        pkg:
+          - vim
+          - bash-completion
+          - git
+          - curl
+          - wget
+          - iptables
+          - iptables-persistent
+
+    - name: Set Hostname
+      ansible.builtin.hostname:
+        name: {{ hostname }}
+        use: debian
+
+    - name: Set timezone
+      ansible.general.timezone:
+        name: Asia/Shanghai
+
+    - name: Set locale
+      ansible.builtin.locale_gen:
+        name: zh_CN.UTF-8
+        state: present
+
+    - block:
+      - name: Configure sshd to disable root login
+        ansible.builtin.lineinfile:
+          path: /etc/ssh/sshd_config
+          regexp: '^#?PermitRootLogin'
+          line: 'PermitRootLogin no'
+          state: present
+          backup: yes
+      
+      - name: Configure sshd to change port
+        ansible.builtin.lineinfile:
+          path: /etc/ssh/sshd_config
+          regexp: '^#?Port'
+          line: 'Port {{ ssh_port }}'
+          state: present
+          backup: yes
+
+      - name: Configure sshd to allow demo to login only.
+        ansible.builtin.lineinfile:
+          path: /etc/ssh/sshd_config
+          line: 'AllowUsers demo'
+
+      notify:
+        - restart sshd
+
+    - name: loading iptables rules 
+      ansible.builtin.script: files/webserver-iptables.sh -p {{ ssh_port }}
+
+      
+
+  handlers:
+    - name: restart sshd
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted
+      
+
+
+
