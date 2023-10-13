@@ -37,6 +37,7 @@ usage() {
     -v        Output version information and exit.
     -p        Set ssh port.
 EOF
+}
 
 while getopts 'hvp:' arg; do
     case $arg in

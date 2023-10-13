@@ -1,0 +1,12 @@
+---
+webserver:
+  hosts:
+    web1:
+      ansible_host: 192.168.153.131
+      ansible_port: 22
+      ansible_user: demo
+      hostname: ansible-test
+  vars:
+    ssh_port: "{{ ansible_port }}"
+    http_port: 80
+    https_port: 443

@@ -1,16 +1,30 @@
 ---
 - name: System Initialization for debian
   hosts: all
-  become: true
+  gather_facts: False
+  become: True
   # vars_files: 
   tasks:
+    - name: set apt source
+      ansible.builtin.copy:
+        src: files/tsinghua.sources.list
+        dest: /etc/apt/sources.list
+        owner: root
+        group: root
+        mode: 0644
+        backup: yes
+      when: "'development-inventory.yml' in inventory_file"
+
     - name: Upgrade System
       ansible.builtin.apt:
         upgrade: full
         update_cache: true
+      ignore_errors: yes
+      notify: reboot
 
     - name: Install commonly used software
       ansible.builtin.apt:
+        update_cache: False
         pkg:
           - vim
           - bash-completion
@@ -20,13 +34,29 @@
           - iptables
           - iptables-persistent
 
+    - name: ensure dbus is running
+      ansible.builtin.systemd:
+        name: dbus
+        state: started
+        enabled: true
+
+
+    # Be aware that inconsistencies between the hostname and hosts can cause Ansible SSH connection timeouts.
+    - name: Set hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        search_string: "127.0.1.1"
+        line: "127.0.1.1 {{ hostname }} debian"
+        state: present
+      tags: hosts
+
     - name: Set Hostname
       ansible.builtin.hostname:
-        name: {{ hostname }}
+        name: "{{ hostname }}"
         use: debian
 
     - name: Set timezone
-      ansible.general.timezone:
+      community.general.timezone:
         name: Asia/Shanghai
 
     - name: Set locale
@@ -41,34 +71,61 @@
           regexp: '^#?PermitRootLogin'
           line: 'PermitRootLogin no'
           state: present
-          backup: yes
+          # backup: yes
+        notify:
+          - restart sshd
       
       - name: Configure sshd to change port
         ansible.builtin.lineinfile:
           path: /etc/ssh/sshd_config
           regexp: '^#?Port'
-          line: 'Port {{ ssh_port }}'
+          line: "Port {{ ssh_port }}"
           state: present
-          backup: yes
+          # backup: yes
+        notify:
+          - restart sshd
+
+      - name: Configure sshd to disable use DNS
+        ansible.builtin.lineinfile:
+          path: /etc/ssh/sshd_config
+          regexp: '^#?UseDNS'
+          line: 'UseDNS no'
+          state: present
+          # backup: yes
+        notify:
+          - restart sshd
 
       - name: Configure sshd to allow demo to login only.
         ansible.builtin.lineinfile:
           path: /etc/ssh/sshd_config
-          line: 'AllowUsers demo'
+          line: "AllowUsers {{ ansible_user }}"
+        notify:
+          - restart sshd
 
-      notify:
-        - restart sshd
-
-    - name: loading iptables rules 
-      ansible.builtin.script: files/webserver-iptables.sh -p {{ ssh_port }}
-
-      
+      - name: loading iptables rules 
+    #   ansible.builtin.script: files/iptables-webserver.sh -p "{{ ssh_port }}"
+        ansible.builtin.template:
+          src: templates/rules.v4.j2
+          dest: /etc/iptables/rules.v4
+        notify: "reload iptables"
 
   handlers:
     - name: restart sshd
       ansible.builtin.systemd:
         name: sshd
         state: restarted
+        enabled: true
+
+    - name: reload iptables
+      ansible.builtin.systemd:
+        name: netfilter-persistent
+        state: restarted
+        enabled: true
+    
+    - name: reboot
+      ansible.builtin.reboot:
+        reboot_command: reboot
+
       
 
 

@@ -1,0 +1,42 @@
+---
+# Create normal user, but no sudo,  no python installed, no ssh key
+# usage: ansible-playbook -i inventory.yml ansible-initialization.yml -k -K
+- name: Initialization of the system for Ansible usage
+  hosts: all
+  become: True
+  become_method: su
+  become_user: root
+  gather_facts: False
+  tasks:
+    - name: Install python
+      ansible.builtin.raw: apt install -y python3 sudo python3-apt apt-transport-https ca-certificates
+      register: apt_output
+      changed_when: "'will be installed' in apt_output.stdout"
+      # changed_when: False
+
+    
+    - name: Mkdir for ssh key
+      ansible.builtin.file:
+        path: "/home/{{ ansible_user }}/.ssh"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0700'
+  
+    - name: Add ssh key
+      ansible.builtin.copy:
+        # content: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+        src: "~/.ssh/id_rsa.pub"
+        dest: "/home/{{ ansible_user }}/.ssh/authorized_keys"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+        backup: yes
+      
+    - name: Configure sudo
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        line: "{{ ansible_user }} ALL=(ALL:ALL) NOPASSWD: ALL"
+        validate: /usr/sbin/visudo -csf %s
+        state: present
+  

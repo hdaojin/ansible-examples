@@ -161,3 +161,8 @@ cython_debug/
 
 # vscode
 .vscode
+
+# ansible
+
+*production*.yml
+test.yml
