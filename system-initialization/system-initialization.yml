@@ -3,7 +3,16 @@
   hosts: all
   gather_facts: False
   become: True
-  # vars_files: 
+  vars:
+    - packages:
+      - vim          
+      - bash-completion
+      - git
+      - curl
+      - wget
+      - iptables
+      - iptables-persistent
+
   tasks:
     - name: set apt source
       ansible.builtin.copy:
@@ -25,14 +34,7 @@
     - name: Install commonly used software
       ansible.builtin.apt:
         update_cache: False
-        pkg:
-          - vim
-          - bash-completion
-          - git
-          - curl
-          - wget
-          - iptables
-          - iptables-persistent
+        pkg: "{{ packages }}"
 
     - name: ensure dbus is running
       ansible.builtin.systemd:
