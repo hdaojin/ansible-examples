@@ -7,6 +7,8 @@
   become_method: su
   become_user: root
   gather_facts: False
+  vars:
+    - ssh_public_key: ~/.ssh/id_rsa.pub
   tasks:
     - name: Install python
       ansible.builtin.raw: apt install -y python3 sudo python3-apt apt-transport-https ca-certificates
@@ -14,24 +16,10 @@
       changed_when: "'will be installed' in apt_output.stdout"
       # changed_when: False
 
-    
-    - name: Mkdir for ssh key
-      ansible.builtin.file:
-        path: "/home/{{ ansible_user }}/.ssh"
-        state: directory
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '0700'
-  
-    - name: Add ssh key
-      ansible.builtin.copy:
-        # content: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
-        src: "~/.ssh/id_rsa.pub"
-        dest: "/home/{{ ansible_user }}/.ssh/authorized_keys"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: '0600'
-        backup: yes
+    - name: Add ssh public key 
+      ansible.posix.authorized_key:
+        user: "{{ ansible_user }}"
+        key: "{{ lookup('ansible.builtin.file', '{{ ssh_public_key }}' ) }}"
       
     - name: Configure sudo
       ansible.builtin.lineinfile:
