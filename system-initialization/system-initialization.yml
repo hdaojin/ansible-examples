@@ -22,7 +22,7 @@
         group: root
         mode: 0644
         backup: yes
-      when: "'development-inventory.yml' in inventory_file"
+      when: "'production-inventory.yml' not in inventory_file"
 
     - name: Upgrade System
       ansible.builtin.apt:
@@ -35,6 +35,11 @@
       ansible.builtin.apt:
         update_cache: False
         pkg: "{{ packages }}"
+
+    - name: Clean no longer required packages
+      ansible.builtin.apt:
+        autoremove: yes
+        autoclean: yes
 
     - name: ensure dbus is running
       ansible.builtin.systemd:

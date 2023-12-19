@@ -165,4 +165,5 @@ cython_debug/
 # ansible
 
 *production*.yml
+test-inventory.yml
 test.yml
