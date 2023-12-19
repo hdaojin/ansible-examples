@@ -24,7 +24,8 @@
     - name: Configure sudo
       ansible.builtin.lineinfile:
         path: /etc/sudoers
-        line: "{{ ansible_user }} ALL=(ALL:ALL) NOPASSWD: ALL"
+        # line: "{{ ansible_user }} ALL=(ALL:ALL) NOPASSWD: ALL"
+        line: "{{ ansible_user }} ALL=(ALL:ALL) ALL"
         validate: /usr/sbin/visudo -csf %s
         state: present
   
