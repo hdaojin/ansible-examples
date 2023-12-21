@@ -16,7 +16,7 @@
   tasks:
     - name: set apt source
       ansible.builtin.copy:
-        src: files/tsinghua.sources.list
+        src: files/apt.sources.list
         dest: /etc/apt/sources.list
         owner: root
         group: root
@@ -64,11 +64,11 @@
 
     - name: Set timezone
       community.general.timezone:
-        name: Asia/Shanghai
+        name: "{{ timezone }}"
 
     - name: Set locale
       ansible.builtin.locale_gen:
-        name: zh_CN.UTF-8
+        name: "{{ locale }}"
         state: present
 
     - block:

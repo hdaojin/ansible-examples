@@ -1,0 +1,85 @@
+---
+- name: Deploy Flask App with nginx and gunicorn
+  hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  vars:
+    repo_url: 'https://github.com/hdaojin/itnsa.git'
+  tasks:
+    - name: Install python3, python3-pip, python3-venv, git, nginx
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - python3
+        - python3-pip
+        - python3-venv
+        - git
+        - nginx
+
+    - name: Create the project directory
+      ansible.builtin.file:
+        path: /srv/itnsa
+        owner: www-data
+        group: www-data
+        state: directory
+        mode: '0755'
+
+    # - name: Pull the latest code of the application
+    #   ansible.builtin.git:
+    #     repo: "{{ repo_url }}"
+    #     dest: /srv/itnsa
+
+    - name: Create a virtualenv for the project
+      ansible.builtin.command:
+        cmd: /usr/bin/python3 -m venv /srv/itnsa/.venv
+        creates: /srv/itnsa/.venv
+
+    - name: Install pip requirements
+      ansible.builtin.pip:
+        requirements: /srv/itnsa/requirements.txt
+        executable: /srv/itnsa/.venv/bin/pip
+
+    - name: Create a systemd service file
+      ansible.builtin.template:
+        src: templates/itnsa.service.j2
+        dest: /etc/systemd/system/itnsa.service
+      notify:
+        - daemon-reload
+        - restart itnsa
+
+    - name: Configure nginx
+      ansible.builtin.template:
+        src: templates/itnsa.nginx.j2
+        dest: /etc/nginx/sites-available/itnsa
+      notify:
+        - restart nginx
+
+    - name: Enable the itnsa site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/itnsa
+        dest: /etc/nginx/sites-enabled/default
+        state: link
+      notify:
+        - restart nginx
+
+  handlers:
+    - name: daemon-reload
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: restart itnsa
+      ansible.builtin.systemd:
+        name: itnsa
+        state: restarted
+        enabled: yes
+
+    - name: restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+        enabled: yes
+
+
+    

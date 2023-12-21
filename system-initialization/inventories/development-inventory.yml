@@ -10,3 +10,8 @@ webserver:
     ssh_port: "{{ ansible_port }}"
     http_port: 80
     https_port: 443
+    local: zh_CN.UTF-8
+    timezone: Asia/Shanghai
+    ntp_server: 
+      - ntp.aliyun.com
+      - ntp1.aliyun.com
