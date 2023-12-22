@@ -12,6 +12,7 @@ webserver:
     https_port: 443
     local: zh_CN.UTF-8
     timezone: Asia/Shanghai
-    ntp_server: 
+    ntp_servers: 
       - ntp.aliyun.com
       - ntp1.aliyun.com
+      - ntp2.aliyun.com

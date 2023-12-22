@@ -11,7 +11,7 @@
     - ssh_public_key: ~/.ssh/id_rsa.pub
   tasks:
     - name: Install python
-      ansible.builtin.raw: apt install -y python3 sudo python3-apt apt-transport-https ca-certificates
+      ansible.builtin.raw: apt install -y python3 sudo
       register: apt_output
       changed_when: "'will be installed' in apt_output.stdout"
       # changed_when: False
