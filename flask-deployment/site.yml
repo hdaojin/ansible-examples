@@ -1,0 +1,9 @@
+---
+# This playbook deploys the whole application stack in this site. 
+
+- name: Install and configure mariadb, gunicorn, and nginx
+  hosts: webserver
+  roles:
+    - mariadb
+    - gunicorn
+    - nginx

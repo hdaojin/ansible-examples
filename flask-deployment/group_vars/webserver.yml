@@ -1,6 +1,16 @@
 ---
-webuser: webuser
-webgroup: webuser
+# The variables in this file will be loaded for all hosts in the webserver group.
+# These don't have to be explicitly imported by `vars_files`: they are autopopulated.
+
+# for web server
+web_user: webuser
+web_group: webuser
+
+# for mariadb/mysql
+db: itnsa
+db_root_password: dbadmin
+db_user: dbadmin
+db_password: dbadmin
 
 
 

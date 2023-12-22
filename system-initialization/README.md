@@ -17,13 +17,12 @@ These playbooks are used to initialize a Linux system for ansible connection and
 
 **system-initialization.yml**
 
-- Install necessary packages for system configuration
 - Replace apt source to "YOUR_MIRROR" in `files/apt.sources.list`
-- Set hostname with `hostname` variable in inventory file
-- Set timezone with `timezone` variable in inventory file
-
-
-
+- Upgrade system and install necessary packages for system configuration
+- Set `ssh_port`, `hostname`, `locale`, `timezone`, `ntp_servers` that defined in inventory file
+- Configure sshd to disable root login and UseDNS
+- Configure sshd to only allow specific user(ansible_user) to login
+- Enable iptables to block all incoming traffic except ssh(finite) and ping
 
 ## Usage
 
