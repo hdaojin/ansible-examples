@@ -8,6 +8,16 @@
     - mariadb-client
     - python3-pymysql
 
+- name: Check if MariaDB root password is already set
+  ansible.builtin.stat:
+    path: "files/db_root_password_set_marker"
+  register: db_root_password_set
+
+- name: debug db_root_password_set
+  ansible.builtin.debug:
+    msg: "{{ db_root_password_set }}"
+  when: db_root_password_set.stat.exists
+
 - name: Set mariadb root password
   community.mysql.mysql_user:
     name: root
@@ -15,6 +25,13 @@
     host_all: yes
     state: present
     login_unix_socket: /var/run/mysqld/mysqld.sock
+  when: db_root_password_set.stat.exists is not defined
+
+- name: Create marker file
+  ansible.builtin.file:
+    path: "files/db_root_password_set_marker"
+    state: touch
+  when: not db_root_password_set.stat.exists
 
 - name: Remove anonymous users
   community.mysql.mysql_user:
@@ -27,6 +44,8 @@
   community.mysql.mysql_db:
     name: "{{ db }}"
     state: present
+    login_user: root
+    login_password: "{{ db_root_password }}"
     login_unix_socket: /var/run/mysqld/mysqld.sock
 
 - name: Create database user with all database privileges
@@ -34,6 +53,8 @@
     name: "{{ db_user }}"
     password: "{{ db_password }}"
     priv: "{{ db }}.*:ALL"
+    login_user: root
+    login_password: "{{ db_root_password }}"
     login_unix_socket: /var/run/mysqld/mysqld.sock
 
 
