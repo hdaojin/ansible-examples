@@ -26,9 +26,13 @@ These playbooks are used to initialize a Linux system for ansible connection and
 
 ## Usage
 
+Initialize system for ansible connection.
+
 ```bash
 ansible-playbook -i inventories/development-inventory.yml ansible-initialization.yml -k -K
 ```
+
+Initialize system for basic system configuration.
 
 ```bash
 ansible-playbook -i inventories/development-inventory.yml system-initialization.yml -K

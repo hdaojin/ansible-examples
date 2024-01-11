@@ -14,6 +14,8 @@
 apt update -y
 apt upgrade -y 
 apt install -y python3 ansible sshpass
+apt autoremove -y
 
 # Generate ssh key
 ssh-keygen  -t rsa -b 2048 -f ~/.ssh/id_rsa -N "" 
+# ssh-keygen  -t rsa -b 2048  -N "" 

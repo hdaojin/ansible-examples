@@ -1,0 +1,17 @@
+# Access from unauthorized domain names and IP addresses is prohibited
+server {
+         listen 80 default_server;
+         server_name _;
+         return 403;
+}
+
+server {
+         listen              443 ssl http2 default_server;
+         listen              [::]:443 ssl http2 default_server;
+         server_name         _;
+
+         # SSL
+         include             /etc/nginx/custom/ssl.conf;
+    
+         return 403;
+}

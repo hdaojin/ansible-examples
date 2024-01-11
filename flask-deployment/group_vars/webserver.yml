@@ -5,6 +5,9 @@
 # for web server
 web_user: webuser
 web_group: webuser
+domain_name: itnsa.com
+document_root: "/srv/www/{{ domain_name }}"
+
 
 # for mariadb/mysql
 db: itnsa
