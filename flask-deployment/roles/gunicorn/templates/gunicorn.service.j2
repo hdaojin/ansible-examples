@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve flask app
+After=network.target
+
+[Service]
+User={{ web_user }}
+Group={{ web_group }}
+WorkingDirectory={{ document_root }}
+Environment="PATH={{ document_root }}/.venv/bin"
+ExecStart={{ document_root }}/.venv/bin/gunicorn --workers 3  '{{app_module_import}}:{{ app_variable }}'
+
+[Install]
+WantedBy=multi-user.target

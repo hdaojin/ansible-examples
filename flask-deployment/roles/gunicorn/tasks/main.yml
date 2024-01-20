@@ -1,0 +1,63 @@
+---
+- name: Install python3, python3-pip, python3-venv
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop: 
+    - python3
+    - python3-pip
+    - python3-venv
+
+- name: create a web user and group
+  ansible.builtin.user:
+    name: "{{ web_user }}"
+    state: present
+    shell: /sbin/nologin
+    create_home: no
+
+- name: Create the project directory
+  ansible.builtin.file:
+    path: "{{ document_root }}"
+    state: directory
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: 0755
+
+- name: Create a virtual environment for the project
+  ansible.builtin.command:
+    cmd: /usr/bin/python3 -m venv "{{ document_root }}/.venv"
+    creates: "{{ document_root }}/.venv"
+
+- name: Install gunicorn and flask in the virtual environment
+  ansible.builtin.pip:
+    name: "{{ item }}"
+    executable: "{{ document_root }}/.venv/bin/pip"
+  loop:
+    - gunicorn
+    - flask
+
+- name: create a flask test application
+  ansible.builtin.copy:
+    content: |
+      from flask import Flask
+      app = Flask(__name__)
+
+      @app.route("/")
+      def hello():
+          return "<h1 style='color:blue'>Hello There!</h1>"
+
+      if __name__ == "__main__":
+          app.run()
+    dest: "{{ document_root }}/itnsa.py"
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: 0644
+
+
+- name: Create a systemd service file
+  ansible.builtin.template:
+    src: templates/gunicorn.service.j2
+    dest: /etc/systemd/system/gunicorn.service
+  notify:
+    - daemon-reload
+    - restart gunicorn

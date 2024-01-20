@@ -6,6 +6,7 @@
 web_user: webuser
 web_group: webuser
 domain_name: itnsa.com
+subdomain_name: "*.itnsa.com"
 document_root: "/srv/www/{{ domain_name }}"
 
 
@@ -15,5 +16,9 @@ db_root_password: dbadmin
 db_user: dbadmin
 db_password: dbadmin
 
-
+# for flask application
+app_module_import: itnsa
+app_variable: app
+# app_variable is a function if you use factory pattern
+#app_variable: create_app()
 

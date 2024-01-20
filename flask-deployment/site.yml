@@ -4,6 +4,6 @@
 - name: Install and configure mariadb, gunicorn, and nginx
   hosts: webserver
   roles:
-    - mariadb
-    - gunicorn
+#    - mariadb
+#    - gunicorn
     - nginx

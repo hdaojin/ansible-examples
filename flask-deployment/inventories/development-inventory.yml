@@ -4,3 +4,4 @@ webserver:
     web1:
       ansible_host: 192.168.153.201
       ansible_port: 22
+      ansible_user: demo

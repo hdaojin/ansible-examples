@@ -1,0 +1,8 @@
+{% if inventory_name == "production-inventory.yml"  %}
+ssl_certificate  /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem;
+ssl_certificate_key  /etc/letsencrypt/live/{{ domain_name }}/privkey.pem;
+ssl_trusted_certificate /etc/letsencrypt/live/{{ domain_name }}/chain.pem;
+{% else %}
+ssl_certificate  /etc/ssl/certs/ssl-cert-snakeoil.pem;
+ssl_certificate_key  /etc/ssl/private/ssl-cert-snakeoil.key;
+{% endif %}
