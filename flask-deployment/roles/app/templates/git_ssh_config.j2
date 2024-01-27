@@ -1,0 +1,6 @@
+Host github.com
+    HostName github.com
+    Port 22
+    User hdaojin
+    IdentityFile /root/.ssh/id_ed25519
+    ProxyCommand ncat --proxy {{ ssh_proxy }} %h %p

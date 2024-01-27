@@ -5,6 +5,7 @@
 -A INPUT -m state --state INVALID -j DROP
 -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 -A INPUT -i lo -j ACCEPT
+-A INPUT -p tcp -m tcp -m multiport --dports {{ http_port }},{{ https_port }} -m state --state NEW -j ACCEPT
 -A INPUT -p tcp -m tcp --dport {{ ssh_port }} -m state --state NEW -m recent --name ssh --set
 -A INPUT -p tcp -m tcp --dport {{ ssh_port }} -m state --state NEW -m recent --name ssh --update --seconds 600 --hitcount 6 -j DROP
 -A INPUT -p tcp -m tcp --dport {{ ssh_port }} -j ACCEPT

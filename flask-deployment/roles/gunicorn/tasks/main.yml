@@ -48,7 +48,7 @@
 
       if __name__ == "__main__":
           app.run()
-    dest: "{{ document_root }}/itnsa.py"
+    dest: "{{ document_root }}/{{ app_module_import }}.py"
     owner: "{{ web_user }}"
     group: "{{ web_group }}"
     mode: 0644

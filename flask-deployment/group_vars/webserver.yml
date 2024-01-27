@@ -22,3 +22,6 @@ app_variable: app
 # app_variable is a function if you use factory pattern
 #app_variable: create_app()
 
+# for git
+# git_repo: git@github.com:hdaojin/itnsa.git
+git_repo: https://github.com/hdaojin/itnsa.git
