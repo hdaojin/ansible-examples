@@ -8,4 +8,5 @@ ansible_become_user: root
 # inventory_name: "{{ inventory_file | basename | replace('.yml', '') }}"
 inventory_name: "{{ inventory_file | basename }}"
 
-http_proxy: "192.168.153.1:10809"
+# http_proxy: "192.168.153.1:10809"
+http_proxy: "192.168.179.1:10808"

@@ -7,7 +7,8 @@ web_user: webuser
 web_group: webuser
 domain_name: itnsa.com
 subdomain_name: "*.itnsa.com"
-document_root: "/srv/www/{{ domain_name }}"
+site_domain_name: "wsc.itnsa.com"
+document_root: "/srv/www/{{ site_domain_name }}"
 
 
 # for mariadb/mysql
@@ -20,7 +21,7 @@ db_password: dbadmin
 app_module_import: itnsa
 app_variable: app
 # app_variable is a function if you use factory pattern
-#app_variable: create_app()
+# app_variable: create_app()
 
 # for git
 # git_repo: git@github.com:hdaojin/itnsa.git

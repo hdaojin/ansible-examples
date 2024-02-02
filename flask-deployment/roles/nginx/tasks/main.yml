@@ -37,22 +37,17 @@
         src: nginx-security.conf.j2
         dest: /etc/nginx/custom/security.conf
 
-    - name: Set nginx-proxy.conf
-      ansible.builtin.template:
-        src: nginx-proxy.conf.j2
-        dest: /etc/nginx/custom/proxy.conf
-
-    - name: Generate dhparam
-      ansible.builtin.command:
-        cmd: /usr/bin/openssl dhparam -out /etc/nginx/dhparam.pem 2048
-      args:
-        creates: /etc/nginx/dhparam.pem
+    # - name: Generate dhparam
+    #   ansible.builtin.command:
+    #     cmd: /usr/bin/openssl dhparam -out /etc/nginx/dhparam.pem 2048
+    #   args:
+    #     creates: /etc/nginx/dhparam.pem
 
     - name: Generate ssl certificate
       ansible.builtin.script: 
         cmd: /files/generate-ssl-cert.sh
       args:
-        creates: /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem;
+        creates: /etc/letsencrypt/live/{{ site_domain_name }}/fullchain.pem;
       when: "inventory_name == 'production-inventory.yml'"
 
     - name: Set nginx-ssl.conf
@@ -60,20 +55,21 @@
         src: nginx-ssl.conf.j2
         dest: /etc/nginx/custom/ssl.conf
 
-    - name: Set letsencrypt.conf
-      ansible.builtin.template:
-        src: nginx-letsencrypt.conf.j2
-        dest: /etc/nginx/custom/letsencrypt.conf
+    # - name: Set letsencrypt.conf
+    #   ansible.builtin.template:
+    #     src: nginx-letsencrypt.conf.j2
+    #     dest: /etc/nginx/custom/letsencrypt.conf
 
     - name: Set nginx-site.conf
       ansible.builtin.template:
         src: nginx-site.conf.j2
-        dest: /etc/nginx/sites-available/{{ domain_name }}
+        dest: /etc/nginx/sites-available/{{ site_domain_name }}
 
     - name: Enable site
       ansible.builtin.file:
-        src: /etc/nginx/sites-available/{{ domain_name }}
-        dest: /etc/nginx/sites-enabled/{{ domain_name }}
+        src: /etc/nginx/sites-available/{{ site_domain_name }}
+        dest: /etc/nginx/sites-enabled/{{ site_domain_name }}
         state: link
   
   notify: restart nginx
+  tags: nginx_conf

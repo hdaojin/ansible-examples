@@ -28,10 +28,20 @@
   register: project_dir
 
 - block:
+  - name: Find all files and subdirectories in a specific directory
+    ansible.builtin.find:
+      paths: "{{ document_root }}"
+      file_type: any
+      hidden: true
+    register: files_to_delete
+    tags: rmdir
+
   - name: Empty the project directory
     ansible.builtin.file:
-      path: "{{ document_root }}"
+      path: "{{ item.path }}"
       state: absent
+    loop: "{{ files_to_delete.files }}"
+    tags: rmdir
 
   - name: Change the owner of the project directory
     ansible.builtin.file:

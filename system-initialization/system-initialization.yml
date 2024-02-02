@@ -18,40 +18,6 @@
       - iptables-persistent 
 
   tasks:
-    - name: set apt source
-      ansible.builtin.copy:
-        src: files/apt.sources.list
-        dest: /etc/apt/sources.list
-        owner: root
-        group: root
-        mode: 0644
-        backup: yes
-      when: "'production-inventory.yml' not in inventory_file"
-
-    - name: Upgrade System
-      ansible.builtin.apt:
-        upgrade: full
-        update_cache: true
-      ignore_errors: yes
-      notify: reboot
-
-    - name: Install commonly used software
-      ansible.builtin.apt:
-        update_cache: False
-        pkg: "{{ packages }}"
-
-    - name: Clean no longer required packages
-      ansible.builtin.apt:
-        autoremove: yes
-        autoclean: yes
-
-    - name: ensure dbus is running
-      ansible.builtin.systemd:
-        name: dbus
-        state: started
-        enabled: true
-
-
     # Be aware that inconsistencies between the hostname and hosts can cause Ansible SSH connection timeouts.
     - name: Set hosts
       ansible.builtin.lineinfile:
@@ -69,6 +35,40 @@
     - name: Set timezone
       community.general.timezone:
         name: "{{ timezone }}"
+
+    - name: set apt source
+      ansible.builtin.copy:
+        src: files/apt.sources.list
+        dest: /etc/apt/sources.list
+        owner: root
+        group: root
+        mode: 0644
+        backup: yes
+      when: "'production-inventory.yml' not in inventory_file"
+
+    - name: Upgrade System
+      ansible.builtin.apt:
+        upgrade: full
+        update_cache: true
+      ignore_errors: yes
+      notify: reboot
+      # when: "'production-inventory.yml' in inventory_file"
+
+    - name: Install commonly used software
+      ansible.builtin.apt:
+        update_cache: False
+        pkg: "{{ packages }}"
+
+    - name: Clean no longer required packages
+      ansible.builtin.apt:
+        autoremove: yes
+        autoclean: yes
+
+    - name: ensure dbus is running
+      ansible.builtin.systemd:
+        name: dbus
+        state: started
+        enabled: true
 
     - block:
       - name: get ntp servers address
