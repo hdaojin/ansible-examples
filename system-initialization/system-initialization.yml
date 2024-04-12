@@ -30,7 +30,7 @@
       ansible.builtin.hostname:
         name: "{{ hostname }}"
         use: debian
-      when: "'production-inventory.yml' in inventory_file"
+      when: "'production-inventory.yml' not in inventory_file"
 
     - name: Set timezone
       community.general.timezone:
@@ -51,7 +51,7 @@
         upgrade: full
         update_cache: true
       ignore_errors: yes
-      notify: reboot
+      # notify: reboot
       # when: "'production-inventory.yml' in inventory_file"
 
     - name: Install commonly used software
@@ -97,15 +97,26 @@
           - "{{ locale }}"
           - "{{ language }}"
 
+      - name: Get current locale and language configuration
+        ansible.builtin.command: localectl status
+        register: locale_status
+        changed_when: false
+
+      - name: Parse 'LANG' and 'LANGUAGE' from locale output
+        ansible.builtin.set_fact:
+          current_lang: "{{ locale_status.stdout | regex_search('LANG=(.*)', '\\1') | first }}"
+
+
       - name: Configure locale
         ansible.builtin.command:
-          # cmd: update-locale LANG={{ locale }} LANGUAGE={{ language }}
-          cmd: localectl set-locale LANG={{ locale }} LANGUAGE={{ language }}
+          # cmd: update-locale LANG="{{ locale }}" LANGUAGE="{{ language }}"
+          cmd: localectl set-locale LANG="{{ locale }}" LANGUAGE="{{ language }}"
+        changed_when: current_lang != locale
 
-    - name: Configure sshd safe settings
+    - name: Configure sshd safe settings, As of now, the manual for sshd_config file starts with "For each keyword, the first obtained value will be used".
       ansible.builtin.template:
         src: templates/safe-sshd.conf.j2
-        dst: /etc/ssh/sshd_config.d/safe-sshd.conf
+        dest: /etc/ssh/sshd_config.d/safe-sshd.conf
         owner: root
         group: root
         mode: 0644
