@@ -1,7 +1,6 @@
 ---
 - name: System Initialization for debian
   hosts: all
-  gather_facts: False
   become: True
   vars:
     packages:
@@ -31,6 +30,7 @@
       ansible.builtin.hostname:
         name: "{{ hostname }}"
         use: debian
+      when: "'production-inventory.yml' in inventory_file"
 
     - name: Set timezone
       community.general.timezone:
@@ -71,16 +71,11 @@
         enabled: true
 
     - block:
-      - name: get ntp servers address
-        ansible.builtin.set_fact:
-          ntp_server: "{{ ntp_servers[0] }}"
-          fallback_ntp_servers: "{{ ntp_servers[1:] | join(' ') }}"
-          
       - name: Set ntp server
         ansible.builtin.lineinfile:
           path: /etc/systemd/timesyncd.conf
           regexp: '^#?NTP'
-          line: "NTP={{ ntp_server }}"
+          line: "NTP={{ ntp_servers[0] }}"
           state: present
           # backup: yes
 
@@ -88,60 +83,40 @@
         ansible.builtin.lineinfile:
           path: /etc/systemd/timesyncd.conf
           regexp: '^#?FallbackNTP'
-          line: "FallbackNTP= {{ fallback_ntp_servers }}"
+          line: "FallbackNTP= {{ ntp_servers[1:] | join(' ') }}"
           state: present
       notify:
         - restart systemd-timesyncd
 
-    - name: Set locale
-      ansible.builtin.locale_gen:
-        name: "{{ locale }}"
-        state: present
-
     - block:
-      - name: Configure sshd to disable root login
-        ansible.builtin.lineinfile:
-          path: /etc/ssh/sshd_config
-          regexp: '^#?PermitRootLogin'
-          line: 'PermitRootLogin no'
+      - name: Ensure localisation files are available
+        community.general.locale_gen:
+          name: "{{ item }}"
           state: present
-          # backup: yes
-        notify:
-          - restart sshd
-      
-      - name: Configure sshd to change port
-        ansible.builtin.lineinfile:
-          path: /etc/ssh/sshd_config
-          regexp: '^#?Port'
-          line: "Port {{ ssh_port }}"
-          state: present
-          # backup: yes
-        notify:
-          - restart sshd
+        with_items:
+          - "{{ locale }}"
+          - "{{ language }}"
 
-      - name: Configure sshd to disable use DNS
-        ansible.builtin.lineinfile:
-          path: /etc/ssh/sshd_config
-          regexp: '^#?UseDNS'
-          line: 'UseDNS no'
-          state: present
-          # backup: yes
-        notify:
-          - restart sshd
+      - name: Configure locale
+        ansible.builtin.command:
+          # cmd: update-locale LANG={{ locale }} LANGUAGE={{ language }}
+          cmd: localectl set-locale LANG={{ locale }} LANGUAGE={{ language }}
 
-      - name: Configure sshd to allow demo to login only.
-        ansible.builtin.lineinfile:
-          path: /etc/ssh/sshd_config
-          line: "AllowUsers {{ ansible_user }}"
-        notify:
-          - restart sshd
+    - name: Configure sshd safe settings
+      ansible.builtin.template:
+        src: templates/safe-sshd.conf.j2
+        dst: /etc/ssh/sshd_config.d/safe-sshd.conf
+        owner: root
+        group: root
+        mode: 0644
+      notify: restart sshd
 
-      - name: loading iptables rules 
-    #   ansible.builtin.script: files/iptables-webserver.sh -p "{{ ssh_port }}"
-        ansible.builtin.template:
-          src: templates/rules.v4.j2
-          dest: /etc/iptables/rules.v4
-        notify: "reload iptables"
+    - name: loading iptables rules 
+      # ansible.builtin.script: files/iptables-webserver.sh -p "{{ ssh_port }}"
+      ansible.builtin.template:
+        src: templates/rules.v4.j2
+        dest: /etc/iptables/rules.v4
+      notify: "reload iptables"
 
   handlers:
     - name: restart sshd

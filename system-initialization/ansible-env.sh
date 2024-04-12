@@ -1,6 +1,6 @@
 #!/bin/bash
 # Name: ansible-env.sh
-# Description: Initialization for ansible
+# Description: Initialization for ansible control node
 # Author: Huangdaojin
 # Date: 2024.1.7
 # update: 2024.1.7

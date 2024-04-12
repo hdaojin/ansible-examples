@@ -115,11 +115,10 @@ $ipts -A INPUT -m state --state INVALID -j DROP
 $ipts -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 $ipts -A INPUT -p tcp -m multiport --dports $http_port,$https_port -m state --state NEW -j ACCEPT
 $ipts -A INPUT -i lo -j ACCEPT
-# Drop ssh connection if retry more than 5 times in 10 minutes
-$ipts -A INPUT -p tcp --dport $ssh_port -m state --state NEW -m recent --name ssh --update --seconds 600 --hitcount 5 -j DROP
-$ipts -A INPUT -p tcp --dport $ssh_port -m state --state NEW -m recent --name ssh --set -j ACCEPT
-# $ipts -A INPUT -p tcp --dport $ssh_port -m state --state NEW -m recent --name ssh --set
-# $ipts -A INPUT -p tcp --dport $ssh_port -m state --state NEW -j ACCEPT
+# Drop ssh connection if retry more than 5 times in 10 minutes using the following rules. Replace these rules with sshguard or fail2ban.
+# $ipts -A INPUT -p tcp --dport $ssh_port -m state --state NEW -m recent --name ssh --update --seconds 600 --hitcount 5 -j DROP
+# $ipts -A INPUT -p tcp --dport $ssh_port -m state --state NEW -m recent --name ssh --set -j ACCEPT
+$ipts -A INPUT -p tcp --dport $ssh_port -m state --state NEW -j ACCEPT
 # Drop all other packets
 $ipts -A INPUT -j REJECT --reject-with icmp-host-prohibited
 $ipts -A FORWARD -j REJECT --reject-with icmp-host-prohibited

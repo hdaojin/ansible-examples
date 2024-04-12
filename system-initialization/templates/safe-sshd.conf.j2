@@ -1,0 +1,7 @@
+Port {{ ssh_port }}
+UseDNS no
+AddressFamily inet
+SyslogFacility AUTHPRIV
+PermitRootLogin no
+PasswordAuthentication no
+AllowUsers {{ ansible_user }}

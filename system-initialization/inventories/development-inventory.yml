@@ -8,8 +8,11 @@ webserver:
       hostname: ansible-test
   vars:
     ssh_port: "{{ ansible_port }}"
-    local: zh_CN.UTF-8
-    timezone: Asia/Shanghai
+    http_port: 80
+    https_port: 443
+    locale: "zh_CN.UTF-8"
+    language: "zh_CN.UTF-8"
+    timezone: "Asia/Shanghai"
     ntp_servers: 
       - ntp.aliyun.com
       - ntp1.aliyun.com
