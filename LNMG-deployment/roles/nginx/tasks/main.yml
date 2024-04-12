@@ -37,19 +37,6 @@
         src: nginx-security.conf.j2
         dest: /etc/nginx/custom/security.conf
 
-    # - name: Generate dhparam
-    #   ansible.builtin.command:
-    #     cmd: /usr/bin/openssl dhparam -out /etc/nginx/dhparam.pem 2048
-    #   args:
-    #     creates: /etc/nginx/dhparam.pem
-
-    - name: Generate ssl certificate
-      ansible.builtin.script: 
-        cmd: /files/generate-ssl-cert.sh
-      args:
-        creates: /etc/letsencrypt/live/{{ site_domain_name }}/fullchain.pem;
-      when: "inventory_name == 'production-inventory.yml'"
-
     - name: Set nginx-ssl.conf
       ansible.builtin.template:
         src: nginx-ssl.conf.j2
@@ -70,6 +57,15 @@
         src: /etc/nginx/sites-available/{{ site_domain_name }}
         dest: /etc/nginx/sites-enabled/{{ site_domain_name }}
         state: link
+
+    - name: Generate ssl certificate
+      ansible.builtin.script: 
+        # cmd: generate-ssl-cert.sh --domain_name "{{ domain_name }}"  --subdomain_name "{{ subdomain_name }}" --email "{{ email }}"
+        cmd: generate-ssl-cert.sh
+      args:
+        creates: /etc/letsencrypt/live/{{ site_domain_name }}/fullchain.pem
+      # when: "{{ inventory_name }} is 'production-inventory.yml'"
+      # when: "'production-inventory.yml' in inventory_file"
   
   notify: restart nginx
   tags: nginx_conf

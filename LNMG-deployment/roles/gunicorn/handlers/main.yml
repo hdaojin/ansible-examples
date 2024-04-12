@@ -5,6 +5,6 @@
 
 - name: restart gunicorn
   ansible.builtin.systemd:
-    name: gunicorn
+    name: "{{ app_module_import }}"
     state: restarted
     enabled: yes

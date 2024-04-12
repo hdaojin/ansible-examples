@@ -7,7 +7,7 @@ User={{ web_user }}
 Group={{ web_group }}
 WorkingDirectory={{ document_root }}
 Environment="PATH={{ document_root }}/.venv/bin"
-ExecStart={{ document_root }}/.venv/bin/gunicorn --workers 3  '{{app_module_import}}:create_app()'
+ExecStart={{ document_root }}/.venv/bin/gunicorn --workers 2  '{{app_module_import}}:create_app()'
 
 [Install]
 WantedBy=multi-user.target

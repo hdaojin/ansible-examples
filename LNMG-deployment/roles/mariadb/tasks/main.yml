@@ -27,7 +27,7 @@
 
 - name: Create database for application
   community.mysql.mysql_db:
-    name: "{{ db }}"
+    name: "{{ db_name }}"
     state: present
     login_user: root
     login_password: "{{ db_root_password }}"
@@ -36,6 +36,6 @@
   community.mysql.mysql_user:
     name: "{{ db_user }}"
     password: "{{ db_password }}"
-    priv: "{{ db }}.*:ALL"
+    priv: "{{ db_name }}.*:ALL"
     login_user: root
     login_password: "{{ db_root_password }}"

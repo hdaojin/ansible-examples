@@ -1,0 +1,12 @@
+---
+# Variables listed here are available to all hosts in the inventory
+
+ansible_become: yes
+ansible_become_method: sudo
+ansible_become_user: root
+
+# inventory_name: "{{ inventory_file | basename | replace('.yml', '') }}"
+inventory_name: "{{ inventory_file | basename }}"
+
+# http_proxy: "192.168.153.1:10809"
+http_proxy: "192.168.179.1:10808"
