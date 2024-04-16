@@ -154,6 +154,20 @@ asdf: 42
 这会从group_vars/os_CentOS.yml文件中提取变量。
 
 
+### Ansible-lint
+
+使用[ansible-lint](https://docs.ansible.com/ansible-lint/)来检查您的playbooks和roles是否符合最佳实践。这个工具可以帮助您发现潜在的问题，例如不良的命名约定、不必要的变量、不安全的任务等。
+
+```bash
+ansible-lint my_playbook.yml
+```
+
+```bash
+ansible-lint --offline --profile production --write all roles/nginx/tasks/main.yml
+```
+
+
+
 
 
 

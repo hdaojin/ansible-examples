@@ -3,17 +3,17 @@
   ansible.builtin.apt:
     name: "{{ item }}"
     state: present
-  loop: 
+  loop:
     - python3
     - python3-pip
     - python3-venv
 
-- name: create a web user and group
+- name: Create a web user and group
   ansible.builtin.user:
     name: "{{ web_user }}"
     state: present
     shell: /sbin/nologin
-    create_home: no
+    create_home: false
 
 - name: Create the project directory
   ansible.builtin.file:
@@ -21,11 +21,11 @@
     state: directory
     owner: "{{ web_user }}"
     group: "{{ web_group }}"
-    mode: 0755
+    mode: '0755'
 
 - name: Create a virtual environment for the project
   ansible.builtin.command:
-    cmd: /usr/bin/python3 -m venv "{{ document_root }}/.venv"
+    cmd: /usr/bin/python3 -m venv {{ document_root }}/.venv
     creates: "{{ document_root }}/.venv"
 
 - name: Install gunicorn and flask in the virtual environment
@@ -36,19 +36,21 @@
     - gunicorn
     - flask
 
-- name: create a flask test application
+- name: Create a flask test application
   ansible.builtin.copy:
     src: files/flask-test.py
     dest: "{{ document_root }}/{{ app_module_import }}.py"
     owner: "{{ web_user }}"
     group: "{{ web_group }}"
-    mode: 0644
-
+    mode: '0644'
 
 - name: Create a systemd service file
   ansible.builtin.template:
     src: templates/gunicorn.service.j2
-    dest: /etc/systemd/system/"{{ app_module_import }}".service
+    dest: /etc/systemd/system/{{ app_module_import }}.service
+    owner: root
+    group: root
+    mode: '0644'
   notify:
-    - daemon-reload
-    - restart gunicorn
+    - Daemon-reload
+    - Restart gunicorn

@@ -1,10 +1,10 @@
 ---
-- name: daemon-reload
+- name: Daemon-reload
   ansible.builtin.systemd:
-    daemon_reload: yes
+    daemon_reload: true
 
-- name: restart gunicorn
+- name: Restart gunicorn
   ansible.builtin.systemd:
     name: "{{ app_module_import }}"
     state: restarted
-    enabled: yes
+    enabled: true

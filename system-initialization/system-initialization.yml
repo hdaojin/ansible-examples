@@ -1,20 +1,20 @@
 ---
 - name: System Initialization for debian
   hosts: all
-  become: True
+  become: true
   vars:
     packages:
-      - python3-apt 
-      - apt-transport-https 
+      - python3-apt
+      - apt-transport-https
       - ca-certificates
       - systemd-timesyncd
-      - vim          
+      - vim
       - bash-completion
       - git
       - curl
       - wget
       - iptables
-      - iptables-persistent 
+      - iptables-persistent
 
   tasks:
     # Be aware that inconsistencies between the hostname and hosts can cause Ansible SSH connection timeouts.
@@ -36,123 +36,125 @@
       community.general.timezone:
         name: "{{ timezone }}"
 
-    - name: set apt source
+    - name: Set apt source
       ansible.builtin.copy:
         src: files/apt.sources.list
         dest: /etc/apt/sources.list
         owner: root
         group: root
-        mode: 0644
-        backup: yes
+        mode: '0644'
+        backup: true
       when: "'production-inventory.yml' not in inventory_file"
 
-    - name: Upgrade System
+    - name: Upgrade system
       ansible.builtin.apt:
         upgrade: full
         update_cache: true
-      ignore_errors: yes
-      # notify: reboot
-      # when: "'production-inventory.yml' in inventory_file"
+      failed_when: false
+      # ignore_errors: yes
 
     - name: Install commonly used software
       ansible.builtin.apt:
-        update_cache: False
+        update_cache: false
         pkg: "{{ packages }}"
 
     - name: Clean no longer required packages
       ansible.builtin.apt:
-        autoremove: yes
-        autoclean: yes
+        autoremove: true
+        autoclean: true
 
-    - name: ensure dbus is running
+    - name: Ensure dbus is running
       ansible.builtin.systemd:
         name: dbus
         state: started
         enabled: true
 
-    - block:
-      - name: Set ntp server
-        ansible.builtin.lineinfile:
-          path: /etc/systemd/timesyncd.conf
-          regexp: '^#?NTP'
-          line: "NTP={{ ntp_servers[0] }}"
-          state: present
-          # backup: yes
-
-      - name: Set ntp backup server
-        ansible.builtin.lineinfile:
-          path: /etc/systemd/timesyncd.conf
-          regexp: '^#?FallbackNTP'
-          line: "FallbackNTP= {{ ntp_servers[1:] | join(' ') }}"
-          state: present
+    - name: Configure NTP
       notify:
-        - restart systemd-timesyncd
+        - Restart systemd-timesyncd
+      block:
+        - name: Set ntp server
+          ansible.builtin.lineinfile:
+            path: /etc/systemd/timesyncd.conf
+            regexp: '^#?NTP'
+            line: "NTP={{ ntp_servers[0] }}"
+            state: present
+            # backup: yes
+        - name: Set ntp backup server
+          ansible.builtin.lineinfile:
+            path: /etc/systemd/timesyncd.conf
+            regexp: '^#?FallbackNTP'
+            line: "FallbackNTP= {{ ntp_servers[1:] | join(' ') }}"
+            state: present
 
-    - block:
-      - name: Ensure localisation files are available
-        community.general.locale_gen:
-          name: "{{ item }}"
-          state: present
-        with_items:
-          - "{{ locale }}"
-          - "{{ language }}"
+    - name: Configure sshd
+      notify: Restart sshd
+      block:
+        - name: Ensure localisation files are available
+          community.general.locale_gen:
+            name: "{{ item }}"
+            state: present
+          with_items:
+            - "{{ locale }}"
+            - "{{ language }}"
 
-      - name: Get current locale and language configuration
-        ansible.builtin.command: localectl status
-        register: locale_status
-        changed_when: false
+        - name: Get current locale and language configuration
+          ansible.builtin.command: localectl status
+          register: locale_status
+          changed_when: false
 
-      - name: Parse 'LANG' and 'LANGUAGE' from locale output
-        ansible.builtin.set_fact:
-          current_lang: "{{ locale_status.stdout | regex_search('LANG=(.*)', '\\1') | first }}"
+        - name: Parse 'LANG' and 'LANGUAGE' from locale output
+          ansible.builtin.set_fact:
+            current_lang: "{{ locale_status.stdout | regex_search('LANG=(.*)', '\\1') | first }}"
 
+        - name: Configure locale
+          ansible.builtin.command:
+            # cmd: update-locale LANG={{ locale }} LANGUAGE={{ language }}
+            cmd: localectl set-locale LANG={{ locale }} LANGUAGE={{ language }}
+          changed_when: current_lang != locale
 
-      - name: Configure locale
-        ansible.builtin.command:
-          # cmd: update-locale LANG="{{ locale }}" LANGUAGE="{{ language }}"
-          cmd: localectl set-locale LANG="{{ locale }}" LANGUAGE="{{ language }}"
-        changed_when: current_lang != locale
+        - name: Configure sshd safe settings, As of now, the manual for sshd_config file starts with "For each keyword, the first obtained value will be used".
+          ansible.builtin.template:
+            src: templates/safe-sshd.conf.j2
+            dest: /etc/ssh/sshd_config.d/safe-sshd.conf
+            owner: root
+            group: root
+            mode: '0644'
 
-    - name: Configure sshd safe settings, As of now, the manual for sshd_config file starts with "For each keyword, the first obtained value will be used".
-      ansible.builtin.template:
-        src: templates/safe-sshd.conf.j2
-        dest: /etc/ssh/sshd_config.d/safe-sshd.conf
-        owner: root
-        group: root
-        mode: 0644
-      notify: restart sshd
+        - name: Protect sshd using sshguard
+          ansible.builtin.apt:
+            name: sshguard
+            state: present
 
-    - name: loading iptables rules 
+    - name: Loading iptables rules
       # ansible.builtin.script: files/iptables-webserver.sh -p "{{ ssh_port }}"
       ansible.builtin.template:
         src: templates/rules.v4.j2
         dest: /etc/iptables/rules.v4
-      notify: "reload iptables"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: "Reload iptables"
 
   handlers:
-    - name: restart sshd
+    - name: Restart sshd
       ansible.builtin.systemd:
         name: sshd
         state: restarted
         enabled: true
 
-    - name: restart systemd-timesyncd
+    - name: Restart systemd-timesyncd
       ansible.builtin.systemd:
         name: systemd-timesyncd
         state: restarted
         enabled: true
 
-    - name: reload iptables
+    - name: Reload iptables
       ansible.builtin.systemd:
         name: netfilter-persistent
         state: restarted
         enabled: true
-    
-    - name: reboot
+
+    - name: Reboot
       ansible.builtin.reboot:
         reboot_command: reboot
-
-      
-
-
-

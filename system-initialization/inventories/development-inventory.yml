@@ -13,7 +13,7 @@ webserver:
     locale: "zh_CN.UTF-8"
     language: "zh_CN.UTF-8"
     timezone: "Asia/Shanghai"
-    ntp_servers: 
+    ntp_servers:
       - ntp.aliyun.com
       - ntp1.aliyun.com
       - ntp2.aliyun.com

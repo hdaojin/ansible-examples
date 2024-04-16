@@ -1,6 +1,5 @@
 ---
-# This playbook deploys the whole application stack in this site. 
-
+# This playbook deploys the whole application stack in this site.
 - name: Install and configure mariadb, gunicorn, and nginx. Deploy the flask app.
   hosts: webserver
   roles:

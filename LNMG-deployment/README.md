@@ -12,5 +12,5 @@ Building a stack with MySQL, gunicron, and nginx. Deploying flask application.
 ## Usage
 
 ```bash
-ansible-playbook -i hosts site.yml -K
+ansible-playbook -i hosts site.yml
 ```

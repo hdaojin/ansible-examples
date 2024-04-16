@@ -1,7 +1,7 @@
 upstream flask_app {
-    zone flask_app 64k;
+    # zone flask_app 64k;
     server 127.0.0.1:8000;
-    keepalive 32;
+    # keepalive 32;
 }
 
 server {
@@ -39,7 +39,7 @@ server {
 server {
     listen                  443 ssl http2;
     listen                  [::]:443 ssl http2;
-    server_name             .{{ domain_name }};
+    server_name             *.{{ domain_name }};
 
     # SSL
     include                 custom/ssl.conf;
@@ -49,7 +49,7 @@ server {
 server {
     listen      80;
     listen      [::]:80;
-    server_name .{{ domain_name }};
+    server_name *.{{ domain_name }};
 
     location / {
         return 301 https://{{ site_domain_name }}$request_uri;
