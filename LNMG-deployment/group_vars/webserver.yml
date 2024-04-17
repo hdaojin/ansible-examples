@@ -1,0 +1,29 @@
+---
+# The variables in this file will be loaded for all hosts in the webserver group.
+# These don't have to be explicitly imported by `vars_files`: they are autopopulated.
+
+# for web server
+web_user: webuser
+web_group: webuser
+domain_name: itnsa.cn
+subdomain_name: www.itnsa.cn
+site_domain_name: itnsa.cn
+document_root: /srv/www/{{ site_domain_name }}
+email: hdaojin@hotmail.com
+
+
+# for mariadb/mysql
+db_name: itnsa
+db_root_password: dbadmin
+db_user: dbadmin
+db_password: dbadmin
+
+# for flask application
+app_module_import: itnsa
+app_variable: app
+# app_variable is a function if you use factory pattern
+# app_variable: create_app()
+
+# for git
+# git_repo: git@github.com:hdaojin/itnsa.git
+git_repo: https://github.com/hdaojin/itnsa.git
